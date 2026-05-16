@@ -1,0 +1,52 @@
+{
+  "name": "@bunnykit/storage",
+  "version": "0.1.0",
+  "description": "Laravel Storage-inspired file storage abstraction for Bun. Supports local disk and S3-compatible backends.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun --minify --splitting --external @bunnykit/orm && bunx tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "prebuild": "bun run clean",
+    "prepack": "bun run build",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@bunnykit/orm": "*"
+  },
+  "peerDependenciesMeta": {
+    "@bunnykit/orm": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@bunnykit/orm": "latest",
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "storage",
+    "s3",
+    "r2",
+    "bun",
+    "laravel"
+  ],
+  "author": {
+    "name": "Junrey Beduya",
+    "email": "jbeduya@gmail.com"
+  },
+  "license": "MIT"
+}
