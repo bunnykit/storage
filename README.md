@@ -150,6 +150,36 @@ storage();        // default disk
 storage('r2');    // named disk
 ```
 
+### `s3(disk?)`
+
+Returns the driver for the named disk typed as `S3Driver`, giving access to `.bucket()`. Throws if the resolved disk is not an S3 driver.
+
+```ts
+import { s3 } from '@bunnykit/storage';
+
+s3();        // default disk, typed as S3Driver
+s3('r2');    // named S3 disk
+```
+
+### `S3Driver.bucket(name)`
+
+Returns a new `S3Driver` that shares all credentials and config of the parent but targets a different bucket. The original driver is not mutated.
+
+Useful for multi-tenant setups where each tenant owns a separate bucket:
+
+```ts
+import { s3 } from '@bunnykit/storage';
+
+// per-request, pick the tenant's bucket
+await s3('r2').bucket('tenant-abc').put('avatar.png', data);
+await s3('r2').bucket('tenant-xyz').get('report.pdf');
+
+// reuse the same base driver
+const base = s3('r2');
+const tenantA = base.bucket('tenant-a');
+const tenantB = base.bucket('tenant-b');
+```
+
 ### `Storage` — singleton manager
 
 ```ts

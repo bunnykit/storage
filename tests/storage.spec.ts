@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { LocalDriver } from '../src/drivers/local';
+import { S3Driver } from '../src/drivers/s3';
 import type { StorageDriver } from '../src/types';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -334,6 +335,138 @@ describe('LocalDriver', () => {
 			await driver.makeDirectory('idempotent');
 			expect(await driver.makeDirectory('idempotent')).toBeUndefined();
 		});
+	});
+});
+
+// ── S3Driver.bucket() ─────────────────────────────────────────────────────────
+
+describe('S3Driver.bucket()', () => {
+	function makeS3Driver(overrides: Partial<Parameters<typeof S3Driver.prototype.bucket>[0]> = {}) {
+		return new S3Driver({
+			driver: 's3',
+			bucket: 'original-bucket',
+			accessKeyId: 'key',
+			secretAccessKey: 'secret',
+			endpoint: 'https://s3.example.com',
+			...overrides
+		});
+	}
+
+	it('returns a new S3Driver instance', () => {
+		const driver = makeS3Driver();
+		const other = driver.bucket('tenant-bucket');
+		expect(other).toBeInstanceOf(S3Driver);
+		expect(other).not.toBe(driver);
+	});
+
+	it('does not mutate the original driver', () => {
+		const driver = makeS3Driver();
+		driver.bucket('other-bucket');
+		expect(driver.url('file.txt')).toContain('original-bucket');
+	});
+
+	it('uses overridden bucket in URL generation', () => {
+		const driver = makeS3Driver({ endpoint: 'https://s3.example.com' });
+		const tenant = driver.bucket('tenant-bucket');
+		expect(tenant.url('avatar.png')).toContain('tenant-bucket');
+		expect(tenant.url('avatar.png')).not.toContain('original-bucket');
+	});
+
+	it('inherits all other config (endpoint, credentials)', () => {
+		const driver = makeS3Driver({ endpoint: 'https://s3.example.com' });
+		const tenant = driver.bucket('tenant-bucket');
+		expect(tenant.url('f.txt')).toContain('https://s3.example.com');
+	});
+
+	it('inherits publicUrl from parent', () => {
+		const driver = makeS3Driver({ publicUrl: 'https://cdn.example.com' });
+		const tenant = driver.bucket('tenant-bucket');
+		expect(tenant.url('file.txt')).toBe('https://cdn.example.com/file.txt');
+	});
+
+	it('chained calls produce independent drivers', () => {
+		const base = makeS3Driver({ endpoint: 'https://s3.example.com' });
+		const t1 = base.bucket('tenant-1');
+		const t2 = base.bucket('tenant-2');
+		expect(t1.url('f.txt')).toContain('tenant-1');
+		expect(t2.url('f.txt')).toContain('tenant-2');
+		expect(base.url('f.txt')).toContain('original-bucket');
+	});
+
+	it('bucket name appears in URL when no publicUrl', () => {
+		const driver = new S3Driver({
+			driver: 's3',
+			bucket: 'base',
+			accessKeyId: 'k',
+			secretAccessKey: 's',
+			endpoint: 'https://s3.example.com'
+		});
+		const url = driver.bucket('acme-corp').url('logo.png');
+		expect(url).toBe('https://s3.example.com/acme-corp/logo.png');
+	});
+});
+
+// ── s3() helper ───────────────────────────────────────────────────────────────
+
+describe('s3() helper', () => {
+	it('returns S3Driver for an S3 disk', async () => {
+		const { Storage, s3 } = await import('../src/index');
+		Storage.addDisk('s3-helper-test', {
+			driver: 's3',
+			bucket: 'test-bucket',
+			accessKeyId: 'key',
+			secretAccessKey: 'secret',
+			endpoint: 'https://s3.example.com'
+		});
+		expect(s3('s3-helper-test')).toBeInstanceOf(S3Driver);
+	});
+
+	it('throws for a non-S3 disk', async () => {
+		const { Storage, s3 } = await import('../src/index');
+		Storage.addDisk('local-only', { driver: 'local', root: '/tmp', publicUrl: '' });
+		expect(() => s3('local-only')).toThrow('is not an S3 disk');
+	});
+
+	it('error message includes disk name', async () => {
+		const { Storage, s3 } = await import('../src/index');
+		Storage.addDisk('not-s3-disk', { driver: 'local', root: '/tmp', publicUrl: '' });
+		expect(() => s3('not-s3-disk')).toThrow('not-s3-disk');
+	});
+
+	it('.bucket() returns driver using overridden bucket in URL', async () => {
+		const { Storage, s3 } = await import('../src/index');
+		Storage.addDisk('s3-bucket-override', {
+			driver: 's3',
+			bucket: 'original',
+			accessKeyId: 'key',
+			secretAccessKey: 'secret',
+			endpoint: 'https://s3.example.com'
+		});
+		const tenant = s3('s3-bucket-override').bucket('tenant-abc');
+		expect(tenant.url('file.txt')).toContain('tenant-abc');
+		expect(tenant.url('file.txt')).not.toContain('original');
+	});
+
+	it('multiple .bucket() calls from same base are independent', async () => {
+		const { Storage, s3 } = await import('../src/index');
+		Storage.addDisk('s3-multi-tenant', {
+			driver: 's3',
+			bucket: 'default',
+			accessKeyId: 'key',
+			secretAccessKey: 'secret',
+			endpoint: 'https://s3.example.com'
+		});
+		const base = s3('s3-multi-tenant');
+		const a = base.bucket('tenant-a');
+		const b = base.bucket('tenant-b');
+		expect(a.url('f.txt')).toContain('tenant-a');
+		expect(b.url('f.txt')).toContain('tenant-b');
+		expect(base.url('f.txt')).toContain('default');
+	});
+
+	it('throws for unknown disk name', async () => {
+		const { s3 } = await import('../src/index');
+		expect(() => s3('__no-such-s3-disk__')).toThrow();
 	});
 });
 

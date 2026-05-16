@@ -144,4 +144,8 @@ export class S3Driver implements StorageDriver {
 	async makeDirectory(_directory: string): Promise<void> {
 		// S3 has no real directories — no-op
 	}
+
+	bucket(name: string): S3Driver {
+		return new S3Driver({ ...this.config, bucket: name });
+	}
 }

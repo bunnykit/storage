@@ -213,6 +213,22 @@ export function storage(disk?: BuiltInDiskName | (string & {})): StorageDriver {
 }
 
 /**
+ * Resolve an S3 disk driver by name, typed as `S3Driver` to expose `.bucket()`.
+ * Throws if the resolved disk is not an S3 driver.
+ *
+ * @example
+ * await s3().bucket('tenant-bucket').put('file.txt', data);
+ * await s3('r2').bucket('tenant-bucket').get('file.txt');
+ */
+export function s3(disk?: BuiltInDiskName | (string & {})): S3Driver {
+	const driver = Storage.disk(disk);
+	if (!(driver instanceof S3Driver)) {
+		throw new Error(`Disk "${disk ?? Storage.defaultDisk}" is not an S3 disk.`);
+	}
+	return driver;
+}
+
+/**
  * Get a MediaManager for a model instance.
  * Handles upload, storage, and database recording in one step.
  *
@@ -230,7 +246,7 @@ export async function media(model: Attachable): Promise<MediaManager> {
 }
 
 export default Storage;
-export { Storage };
+export { Storage, S3Driver };
 export type { StorageDriver, DiskConfig } from './types';
 export type { BuiltInDiskName } from './storage.config';
 export type { Attachable, PutOptions } from './media/media-manager';
