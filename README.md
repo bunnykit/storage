@@ -423,3 +423,7 @@ await (await media(user)).putFromUrl('https://example.com/avatar.jpg', {
 ## License
 
 MIT
+
+---
+
+**Keywords:** `bun` `storage` `s3` `r2` `local` `file-upload` `media` `attachments` `cloudflare-r2` `aws-s3` `minio` `backblaze` `laravel` `filesystem` `object-storage` `typescript`
