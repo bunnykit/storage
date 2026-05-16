@@ -39,6 +39,25 @@ const path = await storage().putFromUrl('https://example.com/avatar.jpg', 'avata
 // with explicit filename → avatars/user-123.jpg
 const path = await storage('r2').putFromUrl('https://example.com/avatar.jpg', 'avatars', 'user-123');
 
+// stream a large file (no memory pressure)
+const stream = storage('r2').getStream('videos/big.mp4');
+return new Response(stream);
+
+// write from a stream (e.g. pipe request body directly to storage)
+await storage().putStream('uploads/file.bin', request.body!);
+
+// copy within same disk
+await storage().copy('reports/q1.pdf', 'archive/q1.pdf');
+
+// move within same disk
+await storage().move('tmp/upload.pdf', 'reports/q1.pdf');
+
+// copy across disks (streamed)
+await Storage.copyAcross('local', 'reports/q1.pdf', 'r2', 'archive/q1.pdf');
+
+// move across disks (streamed, removes source)
+await Storage.moveAcross('local', 'tmp/upload.pdf', 'r2', 'reports/q1.pdf');
+
 // delete
 await storage().delete('reports/q1.pdf');
 ```
@@ -139,7 +158,11 @@ All methods are available on the object returned by `storage()` or `Storage.disk
 | `put(path, contents)` | `Promise<void>` | Write string / Uint8Array / ArrayBuffer / Blob |
 | `putFile(dir, file, name?)` | `Promise<string>` | Store a `File`; returns stored path |
 | `putFromUrl(url, dir, name?)` | `Promise<string>` | Fetch a URL and store the result; returns stored path |
+| `putStream(path, stream)` | `Promise<void>` | Write to a file from a `ReadableStream` |
 | `get(path)` | `Promise<Uint8Array>` | Read as bytes |
+| `getStream(path)` | `ReadableStream<Uint8Array>` | Read as a stream without loading into memory |
+| `copy(source, destination)` | `Promise<void>` | Copy a file to a new path on the same disk |
+| `move(source, destination)` | `Promise<void>` | Move a file to a new path on the same disk |
 | `getText(path)` | `Promise<string>` | Read as UTF-8 string |
 | `exists(path)` | `Promise<boolean>` | Check existence |
 | `delete(path)` | `Promise<void>` | Remove file |
@@ -156,6 +179,20 @@ All driver methods are also available directly on `Storage`, operating on the de
 await Storage.put('file.txt', 'hello');
 await Storage.getText('file.txt');
 Storage.url('file.txt');
+```
+
+### Cross-disk operations
+
+`copyAcross` and `moveAcross` work between different disks. Content is streamed — no full load into memory.
+
+```ts
+import Storage from '@bunnykit/storage';
+
+// copy from local to R2
+await Storage.copyAcross('local', 'reports/q1.pdf', 'r2', 'archive/q1.pdf');
+
+// move from local to R2, removes source after
+await Storage.moveAcross('local', 'tmp/upload.pdf', 'r2', 'reports/q1.pdf');
 ```
 
 ## S3-Compatible Providers

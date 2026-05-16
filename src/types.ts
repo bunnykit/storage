@@ -23,6 +23,12 @@ export interface StorageDriver {
 	/** Return a presigned (temporary) URL. Falls back to `url()` for local disk. */
 	temporaryUrl(path: string, expiresInSeconds?: number): Promise<string>;
 
+	/** Copy a file to a new path. */
+	copy(source: string, destination: string): Promise<void>;
+
+	/** Move a file to a new path. */
+	move(source: string, destination: string): Promise<void>;
+
 	/** Return a readable stream for a file. Avoids loading the entire file into memory. */
 	getStream(path: string): ReadableStream<Uint8Array>;
 

@@ -35,6 +35,16 @@ export class S3Driver implements StorageDriver {
 		return this.client.file(path).text();
 	}
 
+	async copy(source: string, destination: string): Promise<void> {
+		const data = await this.client.file(source).bytes();
+		await this.client.write(destination, data);
+	}
+
+	async move(source: string, destination: string): Promise<void> {
+		await this.copy(source, destination);
+		await this.client.delete(source);
+	}
+
 	async delete(path: string): Promise<void> {
 		await this.client.delete(path);
 	}

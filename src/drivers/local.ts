@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -58,6 +58,18 @@ export class LocalDriver implements StorageDriver {
 
 	async getText(path: string): Promise<string> {
 		return readFile(this.resolve(path), 'utf8');
+	}
+
+	async copy(source: string, destination: string): Promise<void> {
+		const dest = this.resolve(destination);
+		await mkdir(dirname(dest), { recursive: true });
+		await copyFile(this.resolve(source), dest);
+	}
+
+	async move(source: string, destination: string): Promise<void> {
+		const dest = this.resolve(destination);
+		await mkdir(dirname(dest), { recursive: true });
+		await rename(this.resolve(source), dest);
 	}
 
 	async delete(path: string): Promise<void> {

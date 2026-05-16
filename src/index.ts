@@ -105,6 +105,38 @@ class StorageManager<TDisks extends string = BuiltInDiskName> {
 		return this.disk().getText(path);
 	}
 
+	/** Copy a file to a new path on the default disk. */
+	copy(source: string, destination: string) {
+		return this.disk().copy(source, destination);
+	}
+
+	/** Move a file to a new path on the default disk. */
+	move(source: string, destination: string) {
+		return this.disk().move(source, destination);
+	}
+
+	/** Copy a file from one disk to another. Streams content — no full load into memory. */
+	async copyAcross(
+		sourceDisk: TDisks | (string & {}),
+		sourcePath: string,
+		destDisk: TDisks | (string & {}),
+		destPath: string
+	): Promise<void> {
+		const stream = this.disk(sourceDisk).getStream(sourcePath);
+		await this.disk(destDisk).putStream(destPath, stream);
+	}
+
+	/** Move a file from one disk to another. Copies then deletes the source. */
+	async moveAcross(
+		sourceDisk: TDisks | (string & {}),
+		sourcePath: string,
+		destDisk: TDisks | (string & {}),
+		destPath: string
+	): Promise<void> {
+		await this.copyAcross(sourceDisk, sourcePath, destDisk, destPath);
+		await this.disk(sourceDisk).delete(sourcePath);
+	}
+
 	/** Delete a file from the default disk. */
 	delete(path: string) {
 		return this.disk().delete(path);

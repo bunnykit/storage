@@ -23,6 +23,8 @@ function mockDriver(): StorageDriver & { calls: string[] } {
 		putFile: mock(async () => { calls.push('putFile'); return 'dir/file.txt'; }),
 		get: mock(async () => { calls.push('get'); return new Uint8Array(); }),
 		getText: mock(async () => { calls.push('getText'); return ''; }),
+		copy: mock(async () => { calls.push('copy'); }),
+		move: mock(async () => { calls.push('move'); }),
 		delete: mock(async () => { calls.push('delete'); }),
 		exists: mock(async () => { calls.push('exists'); return true; }),
 		url: mock(() => { calls.push('url'); return 'http://example.com/file'; }),
@@ -152,6 +154,37 @@ describe('LocalDriver', () => {
 			await driver.put('dir/sub/nested.txt', 'n');
 			const list = await driver.files('dir');
 			expect(list).toEqual(['dir/file.txt']);
+		});
+	});
+
+	describe('copy', () => {
+		it('copies file to new path, original remains', async () => {
+			await driver.put('original.txt', 'content');
+			await driver.copy('original.txt', 'copy.txt');
+			expect(await driver.getText('copy.txt')).toBe('content');
+			expect(await driver.exists('original.txt')).toBe(true);
+		});
+
+		it('creates intermediate directories at destination', async () => {
+			await driver.put('src.txt', 'data');
+			await driver.copy('src.txt', 'a/b/c/dest.txt');
+			expect(await driver.getText('a/b/c/dest.txt')).toBe('data');
+		});
+	});
+
+	describe('move', () => {
+		it('moves file to new path, original removed', async () => {
+			await driver.put('before.txt', 'moved');
+			await driver.move('before.txt', 'after.txt');
+			expect(await driver.getText('after.txt')).toBe('moved');
+			expect(await driver.exists('before.txt')).toBe(false);
+		});
+
+		it('creates intermediate directories at destination', async () => {
+			await driver.put('flat.txt', 'deep');
+			await driver.move('flat.txt', 'x/y/z/nested.txt');
+			expect(await driver.getText('x/y/z/nested.txt')).toBe('deep');
+			expect(await driver.exists('flat.txt')).toBe(false);
 		});
 	});
 
@@ -362,6 +395,40 @@ describe('StorageManager', () => {
 		expect(path).toBe('downloads/custom.txt');
 
 		globalThis.fetch = originalFetch;
+	});
+
+	it('copyAcross copies file from one disk to another', async () => {
+		const { Storage } = await import('../src/index');
+		const root2 = await mkdtemp(join(tmpdir(), 'storage-disk2-'));
+		try {
+			Storage.addDisk('disk-a', { driver: 'local', root, publicUrl: '' });
+			Storage.addDisk('disk-b', { driver: 'local', root: root2, publicUrl: '' });
+
+			await Storage.disk('disk-a').put('report.txt', 'cross-disk content');
+			await Storage.copyAcross('disk-a', 'report.txt', 'disk-b', 'archive/report.txt');
+
+			expect(await Storage.disk('disk-b').getText('archive/report.txt')).toBe('cross-disk content');
+			expect(await Storage.disk('disk-a').exists('report.txt')).toBe(true);
+		} finally {
+			await rm(root2, { recursive: true, force: true });
+		}
+	});
+
+	it('moveAcross moves file from one disk to another, removes source', async () => {
+		const { Storage } = await import('../src/index');
+		const root2 = await mkdtemp(join(tmpdir(), 'storage-disk2-'));
+		try {
+			Storage.addDisk('disk-c', { driver: 'local', root, publicUrl: '' });
+			Storage.addDisk('disk-d', { driver: 'local', root: root2, publicUrl: '' });
+
+			await Storage.disk('disk-c').put('tmp/upload.txt', 'move me');
+			await Storage.moveAcross('disk-c', 'tmp/upload.txt', 'disk-d', 'final/upload.txt');
+
+			expect(await Storage.disk('disk-d').getText('final/upload.txt')).toBe('move me');
+			expect(await Storage.disk('disk-c').exists('tmp/upload.txt')).toBe(false);
+		} finally {
+			await rm(root2, { recursive: true, force: true });
+		}
 	});
 
 	it('LocalDriver works end-to-end via StorageManager', async () => {
