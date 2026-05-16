@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { LocalDriver } from '../src/drivers/local';
 import { S3Driver } from '../src/drivers/s3';
-import type { StorageDriver } from '../src/types';
+import type { StorageDriver, S3DiskConfig } from '../src/types';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -341,7 +341,7 @@ describe('LocalDriver', () => {
 // ── S3Driver.bucket() ─────────────────────────────────────────────────────────
 
 describe('S3Driver.bucket()', () => {
-	function makeS3Driver(overrides: Partial<Parameters<typeof S3Driver.prototype.bucket>[0]> = {}) {
+	function makeS3Driver(overrides: Partial<S3DiskConfig> = {}) {
 		return new S3Driver({
 			driver: 's3',
 			bucket: 'original-bucket',
