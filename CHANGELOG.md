@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/bunnykit/storage/compare/v1.2.0...v1.3.0) (2026-05-16)
+
+
+### Features
+
+* add allFiles, size, lastModified, mimeType, getNullable, S3 pagination ([2f0c605](https://github.com/bunnykit/storage/commit/2f0c605e3544c71277c20ef8accb26f813833770))
+
 # [1.2.0](https://github.com/bunnykit/storage/compare/v1.1.0...v1.2.0) (2026-05-16)
 
 
