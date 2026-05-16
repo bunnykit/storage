@@ -71,7 +71,7 @@ class StorageManager<TDisks extends string = BuiltInDiskName> {
 	}
 
 	/** Store a File object on the default disk. Returns the stored path. */
-	putFile(directory: string, file: File, name?: string) {
+	putFile(directory: string, file: Blob & { name: string }, name?: string) {
 		return this.disk().putFile(directory, file, name);
 	}
 

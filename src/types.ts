@@ -3,7 +3,7 @@ export interface StorageDriver {
 	put(path: string, contents: string | Uint8Array | ArrayBuffer | Blob): Promise<void>;
 
 	/** Store a File object under `directory`. Returns the stored path. */
-	putFile(directory: string, file: File, name?: string): Promise<string>;
+	putFile(directory: string, file: Blob & { name: string }, name?: string): Promise<string>;
 
 	/** Read a file as raw bytes. */
 	get(path: string): Promise<Uint8Array>;

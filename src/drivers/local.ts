@@ -23,7 +23,7 @@ export class LocalDriver implements StorageDriver {
 		}
 	}
 
-	async putFile(directory: string, file: File, name?: string): Promise<string> {
+	async putFile(directory: string, file: Blob & { name: string }, name?: string): Promise<string> {
 		const ext = extname(file.name) || `.${file.type.split('/')[1] ?? 'bin'}`;
 		const filename = (name ?? randomUUID()) + ext;
 		const path = `${directory.replace(/\/$/, '')}/${filename}`;
