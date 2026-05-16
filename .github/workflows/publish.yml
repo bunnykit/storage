@@ -1,19 +1,23 @@
-name: Publish
+name: CI
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
-  publish:
+  ci:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write  # for npm provenance
+      contents: write       # create releases, push version commit
+      issues: write         # comment on issues
+      pull-requests: write  # comment on PRs
+      id-token: write       # npm provenance
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # semantic-release needs full git history
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -36,7 +40,9 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Publish
-        run: npm publish --provenance --access public
+      - name: Release
+        run: bunx semantic-release
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
