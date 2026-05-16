@@ -39,6 +39,17 @@ const path = await storage().putFromUrl('https://example.com/avatar.jpg', 'avata
 // with explicit filename → avatars/user-123.jpg
 const path = await storage('r2').putFromUrl('https://example.com/avatar.jpg', 'avatars', 'user-123');
 
+// read without throwing on missing
+const content = await storage().getTextNullable('optional.txt'); // null if missing
+
+// file metadata (no download)
+const bytes = await storage().size('reports/q1.pdf');
+const date  = await storage().lastModified('reports/q1.pdf');
+const mime  = await storage().mimeType('reports/q1.pdf');
+
+// recursive listing
+const all = await storage().allFiles('uploads'); // includes subdirectories
+
 // stream a large file (no memory pressure)
 const stream = storage('r2').getStream('videos/big.mp4');
 return new Response(stream);
@@ -160,15 +171,21 @@ All methods are available on the object returned by `storage()` or `Storage.disk
 | `putFromUrl(url, dir, name?)` | `Promise<string>` | Fetch a URL and store the result; returns stored path |
 | `putStream(path, stream)` | `Promise<void>` | Write to a file from a `ReadableStream` |
 | `get(path)` | `Promise<Uint8Array>` | Read as bytes |
+| `getNullable(path)` | `Promise<Uint8Array \| null>` | Read as bytes, returns null if file missing |
+| `getText(path)` | `Promise<string>` | Read as UTF-8 string |
+| `getTextNullable(path)` | `Promise<string \| null>` | Read as string, returns null if file missing |
 | `getStream(path)` | `ReadableStream<Uint8Array>` | Read as a stream without loading into memory |
 | `copy(source, destination)` | `Promise<void>` | Copy a file to a new path on the same disk |
 | `move(source, destination)` | `Promise<void>` | Move a file to a new path on the same disk |
-| `getText(path)` | `Promise<string>` | Read as UTF-8 string |
 | `exists(path)` | `Promise<boolean>` | Check existence |
 | `delete(path)` | `Promise<void>` | Remove file |
 | `url(path)` | `string` | Public URL |
 | `temporaryUrl(path, seconds?)` | `Promise<string>` | Presigned URL (S3) or public URL (local). Falls back to `defaultUrlExpiry` config, then 3600 |
-| `files(directory)` | `Promise<string[]>` | List files (non-recursive) |
+| `size(path)` | `Promise<number>` | File size in bytes without downloading |
+| `lastModified(path)` | `Promise<Date>` | Last modified timestamp |
+| `mimeType(path)` | `Promise<string>` | MIME type of the file |
+| `files(directory)` | `Promise<string[]>` | List files in a directory (non-recursive) |
+| `allFiles(directory)` | `Promise<string[]>` | List all files recursively |
 | `makeDirectory(path)` | `Promise<void>` | Create directory (no-op on S3) |
 
 ### StorageManager facade shortcuts

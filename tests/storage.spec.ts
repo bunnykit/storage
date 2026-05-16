@@ -30,6 +30,12 @@ function mockDriver(): StorageDriver & { calls: string[] } {
 		url: mock(() => { calls.push('url'); return 'http://example.com/file'; }),
 		temporaryUrl: mock(async () => { calls.push('temporaryUrl'); return 'http://example.com/signed'; }),
 		files: mock(async () => { calls.push('files'); return []; }),
+		allFiles: mock(async () => { calls.push('allFiles'); return []; }),
+		size: mock(async () => { calls.push('size'); return 0; }),
+		lastModified: mock(async () => { calls.push('lastModified'); return new Date(); }),
+		mimeType: mock(async () => { calls.push('mimeType'); return 'text/plain'; }),
+		getNullable: mock(async () => { calls.push('getNullable'); return null; }),
+		getTextNullable: mock(async () => { calls.push('getTextNullable'); return null; }),
 		makeDirectory: mock(async () => { calls.push('makeDirectory'); }),
 		getStream: mock(() => { calls.push('getStream'); return new ReadableStream(); }),
 		putStream: mock(async () => { calls.push('putStream'); })
@@ -154,6 +160,76 @@ describe('LocalDriver', () => {
 			await driver.put('dir/sub/nested.txt', 'n');
 			const list = await driver.files('dir');
 			expect(list).toEqual(['dir/file.txt']);
+		});
+	});
+
+	describe('allFiles', () => {
+		it('lists files recursively', async () => {
+			await driver.put('root.txt', 'r');
+			await driver.put('a/b.txt', 'b');
+			await driver.put('a/c/d.txt', 'd');
+			const list = await driver.allFiles('.');
+			expect(list).toContain('./root.txt');
+			expect(list).toContain('./a/b.txt');
+			expect(list).toContain('./a/c/d.txt');
+		});
+
+		it('only returns files not directories', async () => {
+			await driver.put('x/y/z.txt', 'z');
+			const list = await driver.allFiles('x');
+			expect(list).toEqual(['x/y/z.txt']);
+		});
+	});
+
+	describe('size', () => {
+		it('returns file size in bytes', async () => {
+			await driver.put('sized.txt', 'hello');
+			expect(await driver.size('sized.txt')).toBe(5);
+		});
+	});
+
+	describe('lastModified', () => {
+		it('returns a Date', async () => {
+			await driver.put('dated.txt', 'ts');
+			const d = await driver.lastModified('dated.txt');
+			expect(d).toBeInstanceOf(Date);
+			expect(d.getTime()).toBeLessThanOrEqual(Date.now());
+		});
+	});
+
+	describe('mimeType', () => {
+		it('returns correct mime type for known extension', async () => {
+			await driver.put('img.png', 'fake');
+			expect(await driver.mimeType('img.png')).toBe('image/png');
+		});
+
+		it('returns text/plain for .txt', async () => {
+			await driver.put('file.txt', 'text');
+			expect(await driver.mimeType('file.txt')).toBe('text/plain;charset=utf-8');
+		});
+	});
+
+	describe('getNullable', () => {
+		it('returns bytes for existing file', async () => {
+			await driver.put('exists.txt', 'data');
+			const result = await driver.getNullable('exists.txt');
+			expect(result).not.toBeNull();
+			expect(new TextDecoder().decode(result!)).toBe('data');
+		});
+
+		it('returns null for missing file', async () => {
+			expect(await driver.getNullable('ghost.txt')).toBeNull();
+		});
+	});
+
+	describe('getTextNullable', () => {
+		it('returns string for existing file', async () => {
+			await driver.put('exists.txt', 'hello');
+			expect(await driver.getTextNullable('exists.txt')).toBe('hello');
+		});
+
+		it('returns null for missing file', async () => {
+			expect(await driver.getTextNullable('ghost.txt')).toBeNull();
 		});
 	});
 

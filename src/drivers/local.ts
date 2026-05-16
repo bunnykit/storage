@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -94,6 +94,50 @@ export class LocalDriver implements StorageDriver {
 		const entries = await readdir(full, { withFileTypes: true });
 		const dir = directory.replace(/\/$/, '');
 		return entries.filter((e) => e.isFile()).map((e) => `${dir}/${e.name}`);
+	}
+
+	async allFiles(directory: string): Promise<string[]> {
+		const full = this.resolve(directory);
+		const dir = directory.replace(/\/$/, '');
+		const results: string[] = [];
+		const entries = await readdir(full, { withFileTypes: true });
+		for (const entry of entries) {
+			const relPath = `${dir}/${entry.name}`;
+			if (entry.isDirectory()) {
+				results.push(...await this.allFiles(relPath));
+			} else {
+				results.push(relPath);
+			}
+		}
+		return results;
+	}
+
+	async size(path: string): Promise<number> {
+		return (await stat(this.resolve(path))).size;
+	}
+
+	async lastModified(path: string): Promise<Date> {
+		return (await stat(this.resolve(path))).mtime;
+	}
+
+	async mimeType(path: string): Promise<string> {
+		return Bun.file(this.resolve(path)).type;
+	}
+
+	async getNullable(path: string): Promise<Uint8Array | null> {
+		try {
+			return await this.get(path);
+		} catch {
+			return null;
+		}
+	}
+
+	async getTextNullable(path: string): Promise<string | null> {
+		try {
+			return await this.getText(path);
+		} catch {
+			return null;
+		}
 	}
 
 	async makeDirectory(directory: string): Promise<void> {

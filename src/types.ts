@@ -35,8 +35,26 @@ export interface StorageDriver {
 	/** Write to a file from a readable stream. */
 	putStream(path: string, stream: ReadableStream<Uint8Array>): Promise<void>;
 
-	/** List file paths inside a directory. */
+	/** List file paths inside a directory (non-recursive). */
 	files(directory: string): Promise<string[]>;
+
+	/** List all file paths inside a directory recursively. */
+	allFiles(directory: string): Promise<string[]>;
+
+	/** Get the size of a file in bytes without downloading it. */
+	size(path: string): Promise<number>;
+
+	/** Get the last modified date of a file. */
+	lastModified(path: string): Promise<Date>;
+
+	/** Get the MIME type of a file. */
+	mimeType(path: string): Promise<string>;
+
+	/** Read a file as raw bytes, returning null if the file does not exist. */
+	getNullable(path: string): Promise<Uint8Array | null>;
+
+	/** Read a file as a UTF-8 string, returning null if the file does not exist. */
+	getTextNullable(path: string): Promise<string | null>;
 
 	/** Create a directory. No-op on S3-compatible backends. */
 	makeDirectory(directory: string): Promise<void>;

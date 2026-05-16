@@ -157,9 +157,39 @@ class StorageManager<TDisks extends string = BuiltInDiskName> {
 		return this.disk().temporaryUrl(path, expiresInSeconds);
 	}
 
-	/** List files in a directory on the default disk. */
+	/** List files in a directory on the default disk (non-recursive). */
 	files(directory: string) {
 		return this.disk().files(directory);
+	}
+
+	/** List all files in a directory recursively on the default disk. */
+	allFiles(directory: string) {
+		return this.disk().allFiles(directory);
+	}
+
+	/** Get the size of a file in bytes on the default disk. */
+	size(path: string) {
+		return this.disk().size(path);
+	}
+
+	/** Get the last modified date of a file on the default disk. */
+	lastModified(path: string) {
+		return this.disk().lastModified(path);
+	}
+
+	/** Get the MIME type of a file on the default disk. */
+	mimeType(path: string) {
+		return this.disk().mimeType(path);
+	}
+
+	/** Read a file as bytes, returning null if it does not exist. */
+	getNullable(path: string) {
+		return this.disk().getNullable(path);
+	}
+
+	/** Read a file as a string, returning null if it does not exist. */
+	getTextNullable(path: string) {
+		return this.disk().getTextNullable(path);
 	}
 
 	/** Create a directory on the default disk. */

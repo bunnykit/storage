@@ -86,8 +86,59 @@ export class S3Driver implements StorageDriver {
 	}
 
 	async files(directory: string): Promise<string[]> {
-		const response = await this.client.list({ prefix: directory.replace(/\/$/, '') + '/' });
-		return (response.contents ?? []).map((obj) => obj.key).filter(Boolean) as string[];
+		const prefix = directory.replace(/\/$/, '') + '/';
+		const results: string[] = [];
+		let token: string | undefined;
+		do {
+			const response = await this.client.list({
+				prefix,
+				delimiter: '/',
+				...(token ? { continuationToken: token } : {})
+			});
+			results.push(...(response.contents ?? []).map((obj) => obj.key).filter(Boolean) as string[]);
+			token = response.nextContinuationToken ?? undefined;
+		} while (token);
+		return results;
+	}
+
+	async allFiles(directory: string): Promise<string[]> {
+		const prefix = directory.replace(/\/$/, '') + '/';
+		const results: string[] = [];
+		let token: string | undefined;
+		do {
+			const response = await this.client.list({
+				prefix,
+				...(token ? { continuationToken: token } : {})
+			});
+			results.push(...(response.contents ?? []).map((obj) => obj.key).filter(Boolean) as string[]);
+			token = response.nextContinuationToken ?? undefined;
+		} while (token);
+		return results;
+	}
+
+	async size(path: string): Promise<number> {
+		const s = await this.client.file(path).stat();
+		return s.size;
+	}
+
+	async lastModified(path: string): Promise<Date> {
+		const s = await this.client.file(path).stat();
+		return new Date(s.lastModified);
+	}
+
+	async mimeType(path: string): Promise<string> {
+		const s = await this.client.file(path).stat();
+		return s.type;
+	}
+
+	async getNullable(path: string): Promise<Uint8Array | null> {
+		if (!await this.exists(path)) return null;
+		return this.get(path);
+	}
+
+	async getTextNullable(path: string): Promise<string | null> {
+		if (!await this.exists(path)) return null;
+		return this.getText(path);
 	}
 
 	async makeDirectory(_directory: string): Promise<void> {
