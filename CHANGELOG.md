@@ -1,3 +1,15 @@
+# [1.4.0](https://github.com/bunnykit/storage/compare/v1.3.0...v1.4.0) (2026-05-16)
+
+
+### Bug Fixes
+
+* type check error ([d6b6319](https://github.com/bunnykit/storage/commit/d6b6319e6cc5cf7139d44bf7820b7328588d53c9))
+
+
+### Features
+
+* **s3:** add bucket() method and s3() typed helper ([5cb79f5](https://github.com/bunnykit/storage/commit/5cb79f521706f1d198ce6e9b620f711f21cea236))
+
 # [1.3.0](https://github.com/bunnykit/storage/compare/v1.2.0...v1.3.0) (2026-05-16)
 
 
