@@ -158,6 +158,125 @@ await Storage.getText('file.txt');
 Storage.url('file.txt');
 ```
 
+## S3-Compatible Providers
+
+Any provider that speaks the S3 API works. Set `endpoint` for non-AWS providers.
+
+### Cloudflare R2
+
+```ts
+r2: {
+  driver: 's3',
+  bucket: process.env.R2_BUCKET ?? '',
+  accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+  secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  publicUrl: process.env.R2_PUBLIC_URL  // e.g. https://pub-xxx.r2.dev
+}
+```
+
+### MinIO (self-hosted)
+
+```ts
+minio: {
+  driver: 's3',
+  bucket: process.env.MINIO_BUCKET ?? '',
+  accessKeyId: process.env.MINIO_ACCESS_KEY ?? '',
+  secretAccessKey: process.env.MINIO_SECRET_KEY ?? '',
+  endpoint: process.env.MINIO_ENDPOINT ?? 'http://localhost:9000',
+  region: 'us-east-1'
+}
+```
+
+### Backblaze B2
+
+```ts
+b2: {
+  driver: 's3',
+  bucket: process.env.B2_BUCKET ?? '',
+  accessKeyId: process.env.B2_KEY_ID ?? '',
+  secretAccessKey: process.env.B2_APP_KEY ?? '',
+  endpoint: `https://s3.${process.env.B2_REGION}.backblazeb2.com`,
+  publicUrl: process.env.B2_PUBLIC_URL
+}
+```
+
+### DigitalOcean Spaces
+
+```ts
+spaces: {
+  driver: 's3',
+  bucket: process.env.DO_SPACES_BUCKET ?? '',
+  accessKeyId: process.env.DO_SPACES_KEY ?? '',
+  secretAccessKey: process.env.DO_SPACES_SECRET ?? '',
+  endpoint: `https://${process.env.DO_SPACES_REGION}.digitaloceanspaces.com`,
+  publicUrl: `https://${process.env.DO_SPACES_BUCKET}.${process.env.DO_SPACES_REGION}.digitaloceanspaces.com`
+}
+```
+
+### Wasabi
+
+```ts
+wasabi: {
+  driver: 's3',
+  bucket: process.env.WASABI_BUCKET ?? '',
+  accessKeyId: process.env.WASABI_ACCESS_KEY ?? '',
+  secretAccessKey: process.env.WASABI_SECRET_KEY ?? '',
+  endpoint: `https://s3.${process.env.WASABI_REGION}.wasabisys.com`,
+  region: process.env.WASABI_REGION ?? 'us-east-1'
+}
+```
+
+### Vultr Object Storage
+
+```ts
+vultr: {
+  driver: 's3',
+  bucket: process.env.VULTR_BUCKET ?? '',
+  accessKeyId: process.env.VULTR_ACCESS_KEY ?? '',
+  secretAccessKey: process.env.VULTR_SECRET_KEY ?? '',
+  endpoint: `https://${process.env.VULTR_REGION}.vultrobjects.com`
+}
+```
+
+### Linode / Akamai Object Storage
+
+```ts
+linode: {
+  driver: 's3',
+  bucket: process.env.LINODE_BUCKET ?? '',
+  accessKeyId: process.env.LINODE_ACCESS_KEY ?? '',
+  secretAccessKey: process.env.LINODE_SECRET_KEY ?? '',
+  endpoint: `https://${process.env.LINODE_REGION}.linodeobjects.com`
+}
+```
+
+### Tigris
+
+```ts
+tigris: {
+  driver: 's3',
+  bucket: process.env.TIGRIS_BUCKET ?? '',
+  accessKeyId: process.env.TIGRIS_ACCESS_KEY ?? '',
+  secretAccessKey: process.env.TIGRIS_SECRET_KEY ?? '',
+  endpoint: 'https://fly.storage.tigris.dev',
+  region: 'auto'
+}
+```
+
+### Supabase Storage
+
+```ts
+supabase: {
+  driver: 's3',
+  bucket: process.env.SUPABASE_BUCKET ?? '',
+  accessKeyId: process.env.SUPABASE_ACCESS_KEY ?? '',
+  secretAccessKey: process.env.SUPABASE_SECRET_KEY ?? '',
+  endpoint: `https://${process.env.SUPABASE_PROJECT_ID}.supabase.co/storage/v1/s3`,
+  region: process.env.SUPABASE_REGION ?? 'us-east-1'
+}
+```
+
 ## Extensibility
 
 ### Custom driver
