@@ -1,6 +1,6 @@
 {
   "name": "@bunnykit/storage",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Laravel Storage-inspired file storage abstraction for Bun. Supports local disk and S3-compatible backends.",
   "type": "module",
   "main": "./dist/index.js",
@@ -41,18 +41,29 @@
     "typescript": "^5.0.0"
   },
   "release": {
-    "branches": ["main"],
+    "branches": [
+      "main"
+    ],
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
-      ["@semantic-release/changelog", {
-        "changelogFile": "CHANGELOG.md"
-      }],
+      [
+        "@semantic-release/changelog",
+        {
+          "changelogFile": "CHANGELOG.md"
+        }
+      ],
       "@semantic-release/npm",
-      ["@semantic-release/git", {
-        "assets": ["package.json", "CHANGELOG.md"],
-        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-      }],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json",
+            "CHANGELOG.md"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ],
       "@semantic-release/github"
     ]
   },
