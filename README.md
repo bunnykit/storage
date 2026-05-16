@@ -33,6 +33,12 @@ const text  = await storage().getText('reports/q1.txt');
 // public URL
 storage().url('reports/q1.pdf'); // → http://localhost/storage/reports/q1.pdf
 
+// fetch from URL and store (auto-generated filename → avatars/<uuid>.jpg)
+const path = await storage().putFromUrl('https://example.com/avatar.jpg', 'avatars');
+
+// with explicit filename → avatars/user-123.jpg
+const path = await storage('r2').putFromUrl('https://example.com/avatar.jpg', 'avatars', 'user-123');
+
 // delete
 await storage().delete('reports/q1.pdf');
 ```
@@ -132,6 +138,7 @@ All methods are available on the object returned by `storage()` or `Storage.disk
 |--------|---------|-------------|
 | `put(path, contents)` | `Promise<void>` | Write string / Uint8Array / ArrayBuffer / Blob |
 | `putFile(dir, file, name?)` | `Promise<string>` | Store a `File`; returns stored path |
+| `putFromUrl(url, dir, name?)` | `Promise<string>` | Fetch a URL and store the result; returns stored path |
 | `get(path)` | `Promise<Uint8Array>` | Read as bytes |
 | `getText(path)` | `Promise<string>` | Read as UTF-8 string |
 | `exists(path)` | `Promise<boolean>` | Check existence |

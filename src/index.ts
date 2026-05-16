@@ -75,6 +75,16 @@ class StorageManager<TDisks extends string = BuiltInDiskName> {
 		return this.disk().putFile(directory, file, name);
 	}
 
+	/** Fetch a URL and store the result. Returns the stored path. */
+	async putFromUrl(url: string, directory: string, name?: string): Promise<string> {
+		const response = await fetch(url);
+		if (!response.ok) throw new Error(`Failed to fetch "${url}": ${response.status}`);
+		const blob = await response.blob();
+		const filename = url.split('/').pop()?.split('?')[0] ?? 'file';
+		const file = new File([blob], filename, { type: blob.type });
+		return this.disk().putFile(directory, file, name);
+	}
+
 	/** Read a file as raw bytes from the default disk. */
 	get(path: string) {
 		return this.disk().get(path);

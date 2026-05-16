@@ -257,6 +257,50 @@ describe('StorageManager', () => {
 		expect(driver.makeDirectory).toHaveBeenCalledWith('dir');
 	});
 
+	it('putFromUrl fetches and stores file', async () => {
+		const { Storage } = await import('../src/index');
+		Storage.addDisk('local', { driver: 'local', root, publicUrl: 'http://localhost/storage' });
+
+		const originalFetch = globalThis.fetch;
+		globalThis.fetch = mock(async () =>
+			new Response(new Blob(['fetched content'], { type: 'text/plain' }), { status: 200 })
+		) as typeof fetch;
+
+		const path = await Storage.putFromUrl('https://example.com/report.txt', 'downloads');
+		expect(path).toMatch(/^downloads\/.+\.txt$/);
+		expect(await Storage.getText(path)).toBe('fetched content');
+
+		globalThis.fetch = originalFetch;
+	});
+
+	it('putFromUrl throws on non-200 response', async () => {
+		const { Storage } = await import('../src/index');
+
+		const originalFetch = globalThis.fetch;
+		globalThis.fetch = mock(async () => new Response(null, { status: 404 })) as typeof fetch;
+
+		await expect(Storage.putFromUrl('https://example.com/missing.txt', 'downloads')).rejects.toThrow(
+			'Failed to fetch "https://example.com/missing.txt": 404'
+		);
+
+		globalThis.fetch = originalFetch;
+	});
+
+	it('putFromUrl uses provided name', async () => {
+		const { Storage } = await import('../src/index');
+		Storage.addDisk('local', { driver: 'local', root, publicUrl: 'http://localhost/storage' });
+
+		const originalFetch = globalThis.fetch;
+		globalThis.fetch = mock(async () =>
+			new Response(new Blob(['data'], { type: 'text/plain' }), { status: 200 })
+		) as typeof fetch;
+
+		const path = await Storage.putFromUrl('https://example.com/file.txt', 'downloads', 'custom');
+		expect(path).toBe('downloads/custom.txt');
+
+		globalThis.fetch = originalFetch;
+	});
+
 	it('LocalDriver works end-to-end via StorageManager', async () => {
 		const { Storage } = await import('../src/index');
 		Storage.addDisk('local', { driver: 'local', root, publicUrl: 'http://localhost/storage' });
