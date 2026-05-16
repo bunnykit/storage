@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/bunnykit/storage/compare/v1.0.1...v1.0.2) (2026-05-16)
+
+
+### Bug Fixes
+
+* update keywords and readme ([ac0be08](https://github.com/bunnykit/storage/commit/ac0be080cd7d5ce5c923407401d0d31ca23bbf68))
+
 ## [1.0.1](https://github.com/bunnykit/storage/compare/v1.0.0...v1.0.1) (2026-05-16)
 
 
