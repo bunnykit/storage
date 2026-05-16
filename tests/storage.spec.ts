@@ -264,7 +264,7 @@ describe('StorageManager', () => {
 		const originalFetch = globalThis.fetch;
 		globalThis.fetch = mock(async () =>
 			new Response(new Blob(['fetched content'], { type: 'text/plain' }), { status: 200 })
-		) as typeof fetch;
+		) as unknown as typeof fetch;
 
 		const path = await Storage.putFromUrl('https://example.com/report.txt', 'downloads');
 		expect(path).toMatch(/^downloads\/.+\.txt$/);
@@ -277,7 +277,7 @@ describe('StorageManager', () => {
 		const { Storage } = await import('../src/index');
 
 		const originalFetch = globalThis.fetch;
-		globalThis.fetch = mock(async () => new Response(null, { status: 404 })) as typeof fetch;
+		globalThis.fetch = mock(async () => new Response(null, { status: 404 })) as unknown as typeof fetch;
 
 		await expect(Storage.putFromUrl('https://example.com/missing.txt', 'downloads')).rejects.toThrow(
 			'Failed to fetch "https://example.com/missing.txt": 404'
@@ -293,7 +293,7 @@ describe('StorageManager', () => {
 		const originalFetch = globalThis.fetch;
 		globalThis.fetch = mock(async () =>
 			new Response(new Blob(['data'], { type: 'text/plain' }), { status: 200 })
-		) as typeof fetch;
+		) as unknown as typeof fetch;
 
 		const path = await Storage.putFromUrl('https://example.com/file.txt', 'downloads', 'custom');
 		expect(path).toBe('downloads/custom.txt');
