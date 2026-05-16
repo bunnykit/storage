@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/bunnykit/storage/compare/v1.0.0...v1.0.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* did not auto publish to npm ([a7166b1](https://github.com/bunnykit/storage/commit/a7166b1892ed81776b4b92f51917bee4aaf6778a))
+
 # 1.0.0 (2026-05-16)
 
 
