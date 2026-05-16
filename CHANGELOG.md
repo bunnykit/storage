@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/bunnykit/storage/compare/v1.4.0...v1.4.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* file signature for blob is not working in putFile() ([489b4aa](https://github.com/bunnykit/storage/commit/489b4aabbfd28c72edfad09e0630425be1015b0b))
+
 # [1.4.0](https://github.com/bunnykit/storage/compare/v1.3.0...v1.4.0) (2026-05-16)
 
 
