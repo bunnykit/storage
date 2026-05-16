@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/bunnykit/storage/compare/v1.1.0...v1.2.0) (2026-05-16)
+
+
+### Features
+
+* added move() and copy() as well as copyAcross() and moveAcross() ([fd36ee2](https://github.com/bunnykit/storage/commit/fd36ee20a82a81f41be8d5e14fbbe7747089558b))
+
 # [1.1.0](https://github.com/bunnykit/storage/compare/v1.0.2...v1.1.0) (2026-05-16)
 
 

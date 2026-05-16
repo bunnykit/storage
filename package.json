@@ -1,6 +1,6 @@
 {
   "name": "@bunnykit/storage",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Laravel Storage-inspired file storage abstraction for Bun. Supports local disk and S3-compatible backends.",
   "type": "module",
   "main": "./dist/index.js",
