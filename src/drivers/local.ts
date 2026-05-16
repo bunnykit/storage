@@ -35,6 +35,27 @@ export class LocalDriver implements StorageDriver {
 		return readFile(this.resolve(path));
 	}
 
+	getStream(path: string): ReadableStream<Uint8Array> {
+		return Bun.file(this.resolve(path)).stream();
+	}
+
+	async putStream(path: string, stream: ReadableStream<Uint8Array>): Promise<void> {
+		const full = this.resolve(path);
+		await mkdir(dirname(full), { recursive: true });
+		const writer = Bun.file(full).writer();
+		const reader = stream.getReader();
+		try {
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				writer.write(value);
+			}
+		} finally {
+			reader.releaseLock();
+		}
+		await writer.end();
+	}
+
 	async getText(path: string): Promise<string> {
 		return readFile(this.resolve(path), 'utf8');
 	}

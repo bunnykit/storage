@@ -90,6 +90,16 @@ class StorageManager<TDisks extends string = BuiltInDiskName> {
 		return this.disk().get(path);
 	}
 
+	/** Return a readable stream for a file on the default disk. */
+	getStream(path: string) {
+		return this.disk().getStream(path);
+	}
+
+	/** Write to a file from a readable stream on the default disk. */
+	putStream(path: string, stream: ReadableStream<Uint8Array>) {
+		return this.disk().putStream(path, stream);
+	}
+
 	/** Read a file as a string from the default disk. */
 	getText(path: string) {
 		return this.disk().getText(path);

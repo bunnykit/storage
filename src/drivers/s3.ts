@@ -56,6 +56,25 @@ export class S3Driver implements StorageDriver {
 		return this.client.file(path).presign({ expiresIn: ttl });
 	}
 
+	getStream(path: string): ReadableStream<Uint8Array> {
+		return this.client.file(path).stream() as ReadableStream<Uint8Array>;
+	}
+
+	async putStream(path: string, stream: ReadableStream<Uint8Array>): Promise<void> {
+		const writer = this.client.file(path).writer();
+		const reader = stream.getReader();
+		try {
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				writer.write(value);
+			}
+		} finally {
+			reader.releaseLock();
+		}
+		await writer.end();
+	}
+
 	async files(directory: string): Promise<string[]> {
 		const response = await this.client.list({ prefix: directory.replace(/\/$/, '') + '/' });
 		return (response.contents ?? []).map((obj) => obj.key).filter(Boolean) as string[];

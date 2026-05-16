@@ -28,7 +28,9 @@ function mockDriver(): StorageDriver & { calls: string[] } {
 		url: mock(() => { calls.push('url'); return 'http://example.com/file'; }),
 		temporaryUrl: mock(async () => { calls.push('temporaryUrl'); return 'http://example.com/signed'; }),
 		files: mock(async () => { calls.push('files'); return []; }),
-		makeDirectory: mock(async () => { calls.push('makeDirectory'); })
+		makeDirectory: mock(async () => { calls.push('makeDirectory'); }),
+		getStream: mock(() => { calls.push('getStream'); return new ReadableStream(); }),
+		putStream: mock(async () => { calls.push('putStream'); })
 	};
 }
 
@@ -150,6 +152,67 @@ describe('LocalDriver', () => {
 			await driver.put('dir/sub/nested.txt', 'n');
 			const list = await driver.files('dir');
 			expect(list).toEqual(['dir/file.txt']);
+		});
+	});
+
+	describe('getStream', () => {
+		it('returns a ReadableStream of the file contents', async () => {
+			await driver.put('stream.txt', 'streamed content');
+			const stream = driver.getStream('stream.txt');
+			const reader = stream.getReader();
+			const chunks: Uint8Array[] = [];
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				chunks.push(value);
+			}
+			const result = new TextDecoder().decode(
+				chunks.reduce((acc, c) => {
+					const merged = new Uint8Array(acc.length + c.length);
+					merged.set(acc);
+					merged.set(c, acc.length);
+					return merged;
+				}, new Uint8Array())
+			);
+			expect(result).toBe('streamed content');
+		});
+	});
+
+	describe('putStream', () => {
+		it('writes stream contents to a file', async () => {
+			const data = new TextEncoder().encode('written via stream');
+			const stream = new ReadableStream<Uint8Array>({
+				start(controller) {
+					controller.enqueue(data);
+					controller.close();
+				}
+			});
+			await driver.putStream('streamed.txt', stream);
+			expect(await driver.getText('streamed.txt')).toBe('written via stream');
+		});
+
+		it('writes multiple chunks correctly', async () => {
+			const chunks = ['hello', ' ', 'world'].map((s) => new TextEncoder().encode(s));
+			let i = 0;
+			const stream = new ReadableStream<Uint8Array>({
+				pull(controller) {
+					if (i < chunks.length) controller.enqueue(chunks[i++]);
+					else controller.close();
+				}
+			});
+			await driver.putStream('multi-chunk.txt', stream);
+			expect(await driver.getText('multi-chunk.txt')).toBe('hello world');
+		});
+
+		it('creates intermediate directories automatically', async () => {
+			const stream = new ReadableStream<Uint8Array>({
+				start(controller) {
+					controller.enqueue(new TextEncoder().encode('deep'));
+					controller.close();
+				}
+			});
+			await driver.putStream('a/b/c/streamed.txt', stream);
+			expect(await driver.getText('a/b/c/streamed.txt')).toBe('deep');
 		});
 	});
 
