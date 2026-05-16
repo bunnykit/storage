@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/bunnykit/storage/compare/v1.0.2...v1.1.0) (2026-05-16)
+
+
+### Features
+
+* added streaming support ([6e9ba01](https://github.com/bunnykit/storage/commit/6e9ba013be677aeeab4845fed2620111fb63c291))
+
 ## [1.0.2](https://github.com/bunnykit/storage/compare/v1.0.1...v1.0.2) (2026-05-16)
 
 
