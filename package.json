@@ -20,7 +20,6 @@
     "build": "bun build src/index.ts --outdir dist --target bun --minify --splitting --external @bunnykit/orm && bunx tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "prebuild": "bun run clean",
-    "prepack": "bun run build",
     "test": "bun test",
     "typecheck": "bunx tsc --noEmit"
   },
